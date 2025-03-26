@@ -1,4 +1,5 @@
-import { Button, Card, Col, Row, Select, Space, Spin } from "antd";
+import { Button, Card, Col, message, Row, Select, Space, Spin } from "antd";
+import { CopyOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import TextArea from "antd/es/input/TextArea";
 import { invoke } from "@tauri-apps/api/core";
@@ -76,7 +77,7 @@ export const TodoComponent = () => {
                                                         <Card title={issue.title}
                                                             style={{ backgroundColor: issue.progression === 2 ? 'lightgreen' : issue.progression === 1 ? 'lightblue' : 'lightyellow' }}
                                                             extra={
-                                                                <Button size="small" onClick={() => {
+                                                                <Button size="small" type="text" icon={<DeleteOutlined />} onClick={() => {
                                                                     setTodos((prev) => {
                                                                         if (prev.length < 1) {
                                                                             return prev;
@@ -84,12 +85,17 @@ export const TodoComponent = () => {
                                                                         prev[parentIndex].issues?.splice(index, 1);
                                                                         return [...prev];
                                                                     })
-                                                                }}>削除</Button>
+                                                                }} />
                                                             }
                                                         >
                                                             <div style={{ textAlign: 'left' }}>
-                                                                <p>{issue.description}</p>
-                                                                <p style={{ textAlign: 'right' }}>目安: {issue.estimated_working_hours}時間</p>
+                                                                <p onClick={() => {
+                                                                    navigator.clipboard.writeText(issue.description ? issue.description : '');
+                                                                    message.success('クリップボードにコピーしました');
+                                                                }}>{issue.description}</p>
+                                                                <p style={{ textAlign: 'right' }}>
+                                                                    目安: {issue.estimated_working_hours}時間
+                                                                </p>
                                                             </div>
                                                             <Select onChange={(value) => {
                                                                 setTodos((prev) => {
