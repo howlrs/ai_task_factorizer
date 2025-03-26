@@ -1,5 +1,5 @@
 import { Button, Card, Col, message, Row, Select, Space, Spin } from "antd";
-import { CopyOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import TextArea from "antd/es/input/TextArea";
 import { invoke } from "@tauri-apps/api/core";
