@@ -25,22 +25,26 @@ export const TodoComponent = () => {
     const [resource, setResource] = useState<string>('');
 
     // Todo保存
+    const [model, setModel] = useState<string>('');
     const [todos, setTodos] = useState<Todo[]>([]);
 
     // 分解処理
     const onDisassemble = async () => {
         setLoading(true);
         try {
-            const res = await invoke("greet", { resource });
+            const res: any = await invoke("greet", { resource });
 
-            const newTodo = res as Todo;
+            const newModel = res.model as string;
+            const newTodo = res.todo as Todo;
             console.log(newTodo);
 
             setResource('');
+            setModel(newModel);
             setTodos((prev) => [...prev, newTodo]);
 
         } catch (error) {
             console.error(error);
+            message.error(`分解処理に失敗しました。${error}`);
         } finally {
             setLoading(false);
         }
@@ -49,6 +53,14 @@ export const TodoComponent = () => {
 
     return (
         <Spin spinning={loading}>
+            {/* モデル名左上固定 */}
+            <Row gutter={[16, 16]} style={{ position: 'fixed', top: 0, left: 0, zIndex: 1000 }}>
+                <Col span={24}>
+                    <small>{model}</small>
+                </Col>
+            </Row>
+
+
             <Row gutter={[16, 16]}>
                 <Col span={24}>
                     <Space direction="vertical" style={{ width: '100%' }}>
@@ -93,9 +105,9 @@ export const TodoComponent = () => {
                                                                     navigator.clipboard.writeText(issue.description ? issue.description : '');
                                                                     message.success('クリップボードにコピーしました');
                                                                 }}>{issue.description}</p>
-                                                                <p style={{ textAlign: 'right' }}>
-                                                                    目安: {issue.estimated_working_hours}時間
-                                                                </p>
+                                                                {
+                                                                    issue.estimated_working_hours ? <p>見積もり工数: {issue.estimated_working_hours} 時間</p> : ''
+                                                                }
                                                             </div>
                                                             <Select onChange={(value) => {
                                                                 setTodos((prev) => {

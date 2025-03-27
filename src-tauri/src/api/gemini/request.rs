@@ -59,7 +59,25 @@ pub async fn for_disassemble(str: &str) -> Result<Value, String> {
 
     info!("{}", request_content);
 
-    match request_to_gemini_api(&request_content).await {
+    let models = std::env::var("GEMINI_MODELS").unwrap_or_default();
+    let mut model = std::env::var("GEMINI_MODEL").unwrap_or_default();
+
+    if model.is_empty() {
+        model = models.split(',').collect::<Vec<&str>>()[0].to_string();
+    }
+
+    let mut token = std::env::var("GOOGLE_GEMINI_API_KEY").unwrap_or_default();
+    if token.is_empty() {
+        token = std::env::var("GEMINI_API_TOKEN").unwrap_or_default();
+    }
+
+    let url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
+        model.clone(),
+        token.clone()
+    );
+
+    match request_to_gemini_api(&url, &request_content).await {
         Ok(s) => {
             info!("{:?}", s.clone());
             let serded_value: Todo = match serde_json::from_str(s.clone().as_str()) {
@@ -71,7 +89,10 @@ pub async fn for_disassemble(str: &str) -> Result<Value, String> {
             };
             info!("serded: {:?}", serded_value);
 
-            Ok(json!(serded_value))
+            Ok(json!({
+                "model": model,
+                "todo": serded_value,
+            }))
         }
         Err(e) => {
             error!("error: {:?}", e);
@@ -80,14 +101,7 @@ pub async fn for_disassemble(str: &str) -> Result<Value, String> {
     }
 }
 
-async fn request_to_gemini_api(str: &str) -> Result<String, String> {
-    let models = std::env::var("GEMINI_MIDEL").unwrap_or_default();
-    let url = format!(
-        "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
-        models,
-        std::env::var("GEMINI_API_TOKEN").unwrap_or_default()
-    );
-
+async fn request_to_gemini_api(url: &str, str: &str) -> Result<String, String> {
     let client = reqwest::Client::new();
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
@@ -149,7 +163,7 @@ async fn request_to_gemini_api(str: &str) -> Result<String, String> {
         }
     });
 
-    let res = match client.post(&url).headers(headers).json(&body).send().await {
+    let res = match client.post(url).headers(headers).json(&body).send().await {
         Ok(v) => v,
         Err(e) => return Err(e.to_string()),
     };
