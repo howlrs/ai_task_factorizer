@@ -42,9 +42,9 @@ export const TodoComponent = () => {
             setModel(newModel);
             setTodos((prev) => [...prev, newTodo]);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            message.error(`分解処理に失敗しました。${error}`);
+            message.error(`分解処理に失敗しました。${error.error}`);
         } finally {
             setLoading(false);
         }

@@ -59,16 +59,20 @@ pub async fn for_disassemble(str: &str) -> Result<Value, String> {
 
     info!("{}", request_content);
 
-    let models = std::env::var("GEMINI_MODELS").unwrap_or_default();
     let mut model = std::env::var("GEMINI_MODEL").unwrap_or_default();
 
     if model.is_empty() {
+        let models = std::env::var("GEMINI_MODELS").unwrap_or_default();
         model = models.split(',').collect::<Vec<&str>>()[0].to_string();
     }
 
-    let mut token = std::env::var("GOOGLE_GEMINI_API_KEY").unwrap_or_default();
+    let mut token = std::env::var("GEMINI_API_TOKEN").unwrap_or_default();
     if token.is_empty() {
-        token = std::env::var("GEMINI_API_TOKEN").unwrap_or_default();
+        token = std::env::var("GOOGLE_GEMINI_API_KEY").unwrap_or_default();
+    }
+
+    if model.is_empty() || token.is_empty() {
+        return Err("GEMINI_MODEL or GEMINI_API_TOKEN is empty".to_string());
     }
 
     let url = format!(
@@ -232,11 +236,11 @@ async fn request_to_gemini_api(url: &str, str: &str) -> Result<String, String> {
                     // let owned_content: Value = content.clone();
                 }
                 None => {
-                    println!(
+                    let msg = format!(
                         "`candidates` 配列の最初の要素、またはその中の `content` フィールドが見つかりませんでした。  {}",
                         value
                     );
-                    Err("`candidates` 配列の最初の要素、またはその中の `content` フィールドが見つかりませんでした。".to_string())
+                    Err(msg)
                 }
             }
         }
